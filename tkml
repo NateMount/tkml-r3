@@ -2,19 +2,36 @@
 
 import os, sys
 
+def headless(funct):
+	return funct()
+
 def _help() -> None:
 	"""Displays help text to stdout"""
 	print("\033[48;2;202;254;1m\033[38;2;0;0;0m                     TKML [help]                   \033[0m\n\n\033[48;2;202;254;1m\033[38;2;0;0;0m Usage \033[0m\033[38;2;202;254;1m tkml path command")
 
+
+def _load_yaml(path:str) -> dict:
+	"""Loads a yaml file into python dict"""
+	import yaml
+	try:
+		with open(path, 'r') as f:
+			return yaml.safe_load(f)
+	except FileNotFoundError:
+		print("\033[38;2;202;254;1mFile path not recognized")
+		sys.exit()
+
+def _load_xml(path:str):
+	"""Loads a xml file into a python object"""
+	raise NotImplementedError
+
+@headless
+def _read():
+	return _load_yaml if 'form=yaml' in sys.argv else _load_xml:
+
+
 def _render(path:str) -> str:
 	"""Reads in path to tkml file to render into python code"""
-	pass
-
-def _run(path:str) -> str:
-	"""Live run the tkml file in the interpreter"""
-	TKML_title = 'My App'
-	TKML_dimm = [350, 350]
-	TKML_icon = None
+	data = _read(path)
 
 def main() -> None:
 	"""Main"""
@@ -22,10 +39,7 @@ def main() -> None:
 		_help()
 		sys.exit()
 
-	if 'run' in sys.argv:
-		_run(sys.argv[1])
-
-	elif 'render' in sys.argv:
+	if 'render' in sys.argv:
 		_render(sys.argv[1])
 	
 	elif 'compile' in sys.argv:
@@ -46,6 +60,8 @@ def main() -> None:
 	else:
 		_help()
 		sys.exit()
+
+
 
 if __name__ == '__main__':
 	main()
