@@ -1,8 +1,16 @@
 #! /usr/bin/env python3.10
 
+import os, sys
+
+def _help() -> None:
+	"""Displays help text to stdout"""
+	print("\033[48;2;202;254;1m\033[38;2;0;0;0m                     TKML [help]                   \033[0m\n\n\033[48;2;202;254;1m\033[38;2;0;0;0m Usage \033[0m\033[38;2;202;254;1m tkml path -args opts --flags\n\n\033[48;2;202;254;1m\033[38;2;0;0;0m Arguments \033[0m\n\n\033[48;2;202;254;1m\033[38;2;0;0;0m Flags \033[0m")
+
 def main() -> None:
 	"""Main"""
-	pass
+	if len(sys.argv) == 1 or '--help' in sys.argv:
+		_help()
+		sys.exit()
 
 if __name__ == '__main__':
 	main()
