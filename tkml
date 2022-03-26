@@ -28,7 +28,7 @@ def _load_xml(path:str):
 @headless
 def _read():
 	"""Returns format in which document should be read"""
-	return _load_yaml if 'form=yaml' in sys.argv else _load_xml:
+	return _load_yaml if 'form=yaml' in sys.argv else _load_xml
 
 
 def _render(path:str) -> str:
