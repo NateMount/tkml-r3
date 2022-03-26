@@ -6,9 +6,15 @@ def _help() -> None:
 	"""Displays help text to stdout"""
 	print("\033[48;2;202;254;1m\033[38;2;0;0;0m                     TKML [help]                   \033[0m\n\n\033[48;2;202;254;1m\033[38;2;0;0;0m Usage \033[0m\033[38;2;202;254;1m tkml path command")
 
-_render(path:str) -> str:
+def _render(path:str) -> str:
 	"""Reads in path to tkml file to render into python code"""
 	pass
+
+def _run(path:str) -> str:
+	"""Live run the tkml file in the interpreter"""
+	TKML_title = 'My App'
+	TKML_dimm = [350, 350]
+	TKML_icon = None
 
 def main() -> None:
 	"""Main"""
@@ -16,10 +22,13 @@ def main() -> None:
 		_help()
 		sys.exit()
 
-	if 'render' in sys.argv:
+	if 'run' in sys.argv:
+		_run(sys.argv[1])
+
+	elif 'render' in sys.argv:
 		_render(sys.argv[1])
 	
-	if 'compile' in sys.argv:
+	elif 'compile' in sys.argv:
 		_path = _render(sys.argv[1])
 
 		if sys.platform in ('win32', 'cygwin', 'msys'):
@@ -33,6 +42,10 @@ def main() -> None:
 		else:
 			print('\033[38;2;202;254;1mSystem not recognized\033[0m')
 			sys.exit()
+
+	else:
+		_help()
+		sys.exit()
 
 if __name__ == '__main__':
 	main()
