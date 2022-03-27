@@ -3,3 +3,4 @@
 from .runner import run as _run
 from .util import _warn, _help
 from .renderer import render as _render
+from .debug import debug as _debug
