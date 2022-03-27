@@ -2,9 +2,6 @@
 
 import os, sys
 
-import yaml
-from tkinter import *
-
 from src import _debug, _warn, _help, _render, _run
 
 
