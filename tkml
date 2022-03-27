@@ -6,9 +6,16 @@ def headless(funct):
 	"""Used to return the execution of a function, it is assumed this function returns a function"""
 	return funct()
 
+
+def warn(cont:str) -> None:
+	"""Displays warning message to stdout"""
+	print(f"\033[38;2;202;254;1m !!! \033[38;2;0;0;0m\033[48;2;202;254;1m {cont} ")
+
+
 def _help() -> None:
 	"""Displays help text to stdout"""
 	print("\n\t\033[38;2;0;0;0m\033[48;2;202;254;1m [tkml help]                                         \033[0m\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ VERSION [0.0.1 in-dev]                            ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ AUTHORS [NateMount, DeadPixil]                    ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m Usage \033[38;2;202;254;1m\033[48;2;0;0;0m ./tkml path [command] [flags]             ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m[ Commands ]\033[38;2;202;254;1m\033[48;2;0;0;0m                                      ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌        run - live runs the tkml code in the tkml  ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              interpreter                          ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌     render - creates a python executable file     ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              from tkml source file                ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌    compile - creates a windows executable file    ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              from tkml sourve file                ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌      debug - debugs a tkml source file            ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m[ Flags ]\033[38;2;202;254;1m\033[48;2;0;0;0m                                         ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌       form - sets format of tkml file             ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              [yaml / xml / json]                  ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;0;0;0m\033[48;2;202;254;1m                                          [end help] \033[0m\n")
+
 
 def _load_yaml(path:str) -> dict:
 	"""Loads a yaml file into python dict"""
@@ -17,12 +24,15 @@ def _load_yaml(path:str) -> dict:
 		with open(path, 'r') as f:
 			return yaml.safe_load(f)
 	except FileNotFoundError:
-		print("\033[38;2;202;254;1mFile path not recognized")
+		warn("File path not recognized")
 		sys.exit()
+
+
 
 def _load_xml(path:str):
 	"""Loads a xml file into a python object"""
 	raise NotImplementedError
+
 
 @headless
 def _read():
@@ -32,7 +42,36 @@ def _read():
 
 def _render(path:str) -> str:
 	"""Reads in path to tkml file to render into python code"""
-	data = _read(path)
+	_data = _read(path)
+	with open(sys.argv[1].split('/')[-1].split('.')[0], 'a+') as _out:
+		_out.write('#! /usr/bin/env python3.10')
+
+		if 'use' in _data:
+			for _module in _data['use']:
+				if _module.startswith('TKML'):
+					pass
+				else:
+					for _py_path in sys.path:
+						if _module in os.listdir(_py_path):
+							_out.write('import ' + _module)
+
+					if _module in os.listdir(os.getcwd()):
+						_out.write('from . import ' + _module)
+
+					else:
+						warn("Module ["+_module+"] not recognized")
+
+		if 'init' in _data:
+			for _action in _data['init']:
+				if _action.startswith('APP'):
+					match _action.replace('APP_', ''):
+						case 'title':
+							
+
+		else:
+			warn('No init header found')
+			sys.exit()
+
 
 def main() -> None:
 	"""Main"""
@@ -55,7 +94,7 @@ def main() -> None:
 		elif sys.platform in ('linux', 'linux2', 'darwin'):
 			os.system('chmod +x ' + _path)
 		else:
-			print('\033[38;2;202;254;1mSystem not recognized\033[0m')
+			warn("System not recognized")
 			sys.exit()
 
 	else:
