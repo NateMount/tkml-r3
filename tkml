@@ -1,6 +1,8 @@
 #! /usr/bin/env python3.10
 
 import os, sys
+import yaml
+from tkinter import *
 
 def headless(funct):
 	"""Used to return the execution of a function, it is assumed this function returns a function"""
@@ -17,9 +19,24 @@ def _help() -> None:
 	print("\n\t\033[38;2;0;0;0m\033[48;2;202;254;1m [tkml help]                                         \033[0m\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ VERSION [0.0.1 in-dev]                            ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ AUTHORS [NateMount, DeadPixil]                    ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m Usage \033[38;2;202;254;1m\033[48;2;0;0;0m ./tkml path [command] [flags]             ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m[ Commands ]\033[38;2;202;254;1m\033[48;2;0;0;0m                                      ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌        run - live runs the tkml code in the tkml  ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              interpreter                          ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌     render - creates a python executable file     ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              from tkml source file                ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌    compile - creates a windows executable file    ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              from tkml sourve file                ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌      debug - debugs a tkml source file            ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m[ Flags ]\033[38;2;202;254;1m\033[48;2;0;0;0m                                         ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌       form - sets format of tkml file             ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              [yaml / xml / json]                  ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;0;0;0m\033[48;2;202;254;1m                                          [end help] \033[0m\n")
 
 
+def _win_init() -> None:
+	"""Initialize window for tkml"""
+	globals()['root'] = Tk()
+
+	globals()['screen_width'] = root.winfo_screenwidth()
+	globals()['screen_height'] = root.winfo_screenheight()
+
+	root.title('My App')
+	root.geometry(f"500x500+{screen_width//2 - 250}+{screen_height//2 - 250}")
+	root.resizable(False, False)
+	root.minsize(500,500)
+	root.maxsize(500,500)
+	root.attributes('-alpha',1)
+	root.attributes('-topmost', 1)
+
+
 def _load_yaml(path:str) -> dict:
 	"""Loads a yaml file into python dict"""
-	import yaml
 	try:
 		with open(path, 'r') as f:
 			return yaml.safe_load(f)
@@ -40,37 +57,42 @@ def _read():
 	return _load_yaml if 'form=yaml' in sys.argv else _load_xml
 
 
-def _render(path:str) -> str:
-	"""Reads in path to tkml file to render into python code"""
+def _load_frame(frame_name:str) -> None:
+	"""Loads the frame of a given name"""
+	pass
+
+
+def _run(path:str) -> None:
+	"""Runs tkml file live in interpreter"""
 	_data = _read(path)
-	with open(sys.argv[1].split('/')[-1].split('.')[0], 'a+') as _out:
-		_out.write('#! /usr/bin/env python3.10')
+	_win_init()
 
-		if 'use' in _data:
-			for _module in _data['use']:
-				if _module.startswith('TKML'):
-					pass
-				else:
-					for _py_path in sys.path:
-						if _module in os.listdir(_py_path):
-							_out.write('import ' + _module)
+	if 'use' in _data:
+		pass
 
-					if _module in os.listdir(os.getcwd()):
-						_out.write('from . import ' + _module)
+	if 'init' in _data:
+		for _action in _data['init']:
+			match _action:
+				case 'title':
+					root.title(_data['init']['title'])
+				case 'dimm':
+					root.geometry(_data['init']['dimm'])
+				case 'scale':
+					root.resizable(_data['init']['scale'], _data['init']['scale'])
+				case 'scaleX':
+					root.resizable(_data['init']['scaleX'], True)
+				case 'scaleY':
+					root.resizable(True, _data['init']['scaleY'])
+				case 'opacity':
+					root.attributes('-alpha', 1/_data['init']['opacity'])
+				case 'load':
+					_load_frame(_data['init']['load'])
 
-					else:
-						warn("Module ["+_module+"] not recognized")
+		root.mainloop() #TODO replace
+	else:
+		warn("No init header found")
+		sys.exit()
 
-		if 'init' in _data:
-			for _action in _data['init']:
-				if _action.startswith('APP'):
-					match _action.replace('APP_', ''):
-						case 'title':
-							
-
-		else:
-			warn('No init header found')
-			sys.exit()
 
 
 def main() -> None:
@@ -79,23 +101,8 @@ def main() -> None:
 		_help()
 		sys.exit()
 
-	if 'render' in sys.argv:
-		_render(sys.argv[1])
-	
-	elif 'compile' in sys.argv:
-		_path = _render(sys.argv[1])
-
-		if sys.platform in ('win32', 'cygwin', 'msys'):
-			if 'pyinstaller' in os.listdir('C:\Python3\Scripts'):
-				os.system('pyinstaller ' + _path)
-			else:
-				print('\033[38;2;202;254;1mPyinstaller not found \033[0m: install with pip3 install pyinstaller\033[0m')
-				sys.exit()
-		elif sys.platform in ('linux', 'linux2', 'darwin'):
-			os.system('chmod +x ' + _path)
-		else:
-			warn("System not recognized")
-			sys.exit()
+	if 'run' in sys.argv:
+		_run(sys.argv[1])
 
 	else:
 		_help()
