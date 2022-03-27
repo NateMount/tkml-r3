@@ -5,9 +5,7 @@ import os, sys
 import yaml
 from tkinter import *
 
-from .src.util import _warn, _help
-from .src.runner import _run
-from .src.renderer import _render
+from src import _warn, _help, _render, _run
 
 
 def main() -> None:
