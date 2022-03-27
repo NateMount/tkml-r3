@@ -1,112 +1,28 @@
 #! /usr/bin/env python3.10
 
 import os, sys
+
 import yaml
 from tkinter import *
 
-def headless(funct):
-	"""Used to return the execution of a function, it is assumed this function returns a function"""
-	return funct()
-
-
-def warn(cont:str) -> None:
-	"""Displays warning message to stdout"""
-	print(f"\033[38;2;202;254;1m !!! \033[38;2;0;0;0m\033[48;2;202;254;1m {cont} ")
-
-
-def _help() -> None:
-	"""Displays help text to stdout"""
-	print("\n\t\033[38;2;0;0;0m\033[48;2;202;254;1m [tkml help]                                         \033[0m\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ VERSION [0.0.1 in-dev]                            ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ AUTHORS [NateMount, DeadPixil]                    ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m Usage \033[38;2;202;254;1m\033[48;2;0;0;0m ./tkml path [command] [flags]             ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m[ Commands ]\033[38;2;202;254;1m\033[48;2;0;0;0m                                      ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌        run - live runs the tkml code in the tkml  ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              interpreter                          ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌     render - creates a python executable file     ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              from tkml source file                ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌    compile - creates a windows executable file    ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              from tkml sourve file                ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌      debug - debugs a tkml source file            ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌ \033[38;2;0;0;0m\033[48;2;202;254;1m[ Flags ]\033[38;2;202;254;1m\033[48;2;0;0;0m                                         ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌       form - sets format of tkml file             ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌              [yaml / xml / json]                  ▐\n\t\033[38;2;202;254;1m\033[48;2;0;0;0m▌                                                   ▐\n\t\033[38;2;0;0;0m\033[48;2;202;254;1m                                          [end help] \033[0m\n")
-
-
-def _win_init() -> None:
-	"""Initialize window for tkml"""
-	globals()['root'] = Tk()
-
-	globals()['screen_width'] = root.winfo_screenwidth()
-	globals()['screen_height'] = root.winfo_screenheight()
-
-	root.title('My App')
-	root.geometry(f"500x500+{screen_width//2 - 250}+{screen_height//2 - 250}")
-	root.resizable(False, False)
-	root.minsize(500,500)
-	root.maxsize(500,500)
-	root.attributes('-alpha',1)
-	root.attributes('-topmost', 1)
-
-
-def _load_yaml(path:str) -> dict:
-	"""Loads a yaml file into python dict"""
-	try:
-		with open(path, 'r') as f:
-			return yaml.safe_load(f)
-	except FileNotFoundError:
-		warn("File path not recognized")
-		sys.exit()
-
-
-
-def _load_xml(path:str):
-	"""Loads a xml file into a python object"""
-	raise NotImplementedError
-
-
-@headless
-def _read():
-	"""Returns format in which document should be read"""
-	return _load_yaml if 'form=yaml' in sys.argv else _load_xml
-
-
-def _load_frame(frame_name:str) -> None:
-	"""Loads the frame of a given name"""
-	pass
-
-
-def _run(path:str) -> None:
-	"""Runs tkml file live in interpreter"""
-	_data = _read(path)
-	_win_init()
-
-	if 'use' in _data:
-		pass
-
-	if 'init' in _data:
-		for _action in _data['init']:
-			match _action:
-				case 'title':
-					root.title(_data['init']['title'])
-				case 'dimm':
-					root.geometry(_data['init']['dimm'])
-				case 'scale':
-					root.resizable(_data['init']['scale'], _data['init']['scale'])
-				case 'scaleX':
-					root.resizable(_data['init']['scaleX'], True)
-				case 'scaleY':
-					root.resizable(True, _data['init']['scaleY'])
-				case 'opacity':
-					root.attributes('-alpha', 1/_data['init']['opacity'])
-				case 'load':
-					_load_frame(_data['init']['load'])
-
-		root.mainloop() #TODO replace
-	else:
-		warn("No init header found")
-		sys.exit()
-
+from .src.util import _warn, _help
+from .src.runner import _run
+from .src.renderer import _render
 
 
 def main() -> None:
 	"""Main"""
 	if len(sys.argv) == 1 or '--help' in sys.argv:
 		_help()
-		sys.exit()
 
 	if 'run' in sys.argv:
 		_run(sys.argv[1])
+	
+	if 'render' in sys.argv:
+		_render(sys.argv[1])
 
 	else:
 		_help()
-		sys.exit()
 
 
 
