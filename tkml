@@ -5,7 +5,7 @@ import os, sys
 import yaml
 from tkinter import *
 
-from src import _warn, _help, _render, _run
+from src import _debug, _warn, _help, _render, _run
 
 
 def main() -> None:
@@ -18,6 +18,9 @@ def main() -> None:
 	
 	if 'render' in sys.argv:
 		_render(sys.argv[1])
+
+	if 'debug' in sys.argv:
+		_debug(sys.argv[1])
 
 	else:
 		_help()
