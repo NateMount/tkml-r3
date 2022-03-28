@@ -1,7 +1,7 @@
 #! /usr/bin/env python3.10
 
 import os, sys
-from src import _debug, _warn, _help, _render, _run
+from src import _debug, _warn, _help, _render, _xrender, _run
 
 def main() -> None:
 	"""Main"""
@@ -13,6 +13,9 @@ def main() -> None:
 	
 	if 'render' in sys.argv:
 		_render(sys.argv[1])
+
+	if 'xrender' in sys.argv:
+		_xrender(sys.argv[1], sys.argv[-1])
 
 	if 'debug' in sys.argv:
 		_debug(sys.argv[1])
