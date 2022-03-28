@@ -2,6 +2,7 @@
 
 import sys
 import yaml
+import json
 
 def _warn(warning_str:str) -> None:
 	"""Display warning text to stdout"""
@@ -18,6 +19,10 @@ def _read(path:str):
 	try:
 		if 'yaml' in sys.argv:
 			return yaml.load(path)
+		elif 'json' in sys.argv:
+			return json.load(open(path, 'r'))
+		else:
+			return {'init': {'loadframe':'_'}}
 	except FileNotFoundError:
 		_warn("File does not exist")
 		sys.exit()
