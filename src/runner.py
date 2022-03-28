@@ -12,7 +12,7 @@ def run(path:str) -> None:
 		_warn("No data recovered")
 		sys.exit()
 
-	_win_init()
+	frame = _win_init()
 
 	if not root:
 		_warn("Root not initialized, tkml core error")
@@ -99,3 +99,4 @@ def _win_init() -> None:
 	if _win_icon:
 		root.iconbitmap(_win_icon)
 	
+	return data['init']['loadframe']
