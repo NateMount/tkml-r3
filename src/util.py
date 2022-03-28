@@ -16,7 +16,7 @@ def _read(path:str):
 	"""Used to read xml file into memory"""
 	
 	try:
-		
+		pass
 	except FileNotFoundError:
 		_warn("File does not exist")
 		sys.exit()
