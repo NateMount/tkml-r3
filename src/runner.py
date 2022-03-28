@@ -2,7 +2,7 @@
 
 import sys
 from tkinter import *
-from .util import _read, _warn
+from util import _read, _warn
 
 def run(path:str) -> None:
 	"""Used to live run a tkml file"""
@@ -13,7 +13,7 @@ def run(path:str) -> None:
 		sys.exit()
 
 	try:
-		frame = _win_init()
+		frame = _win_init(data)
 	except KeyError:
 		_warn("No loadframe found")
 		sys.exit()
@@ -24,8 +24,10 @@ def run(path:str) -> None:
 
 	_win_loadframe(frame)
 
+	_win_main()
 
-def _win_init() -> None:
+
+def _win_init(data:dict) -> None:
 	"""Initializes the tkinter window environment"""
 
 	globals()['root'] = Tk()
@@ -39,21 +41,20 @@ def _win_init() -> None:
 
 	_win_y:int = 500
 	_win_x:int = 500
-	_win_pos_x:int = _screen_x/2 - 250
-	_win_pos_y:int = _screen_y/2 - 250
+	_win_pos_x:int = int(_screen_x/2 - 250)
+	_win_pos_y:int = int(_screen_y/2 - 250)
 
 	_win_title:str = 'My App'
 
 	_win_scale_x:bool = True
 	_win_scale_y:bool = True
 
-	_win_max_x:int = 600
-	_win_max_y:int = 600
-	_win_min_x:int = 400
-	_win_min_y:int = 400
+	_win_max_x:int = 1200
+	_win_max_y:int = 1200
+	_win_min_x:int = 300
+	_win_min_y:int = 300
 
 	_win_opacity:float = 1.0
-
 	_win_icon:str = None
 
 	for _flag in data['init']:
@@ -96,6 +97,7 @@ def _win_init() -> None:
 			case 'icon':
 				_win_icon = data['init']['icon']
 	
+	#Setting root window attributes
 	root.title(_win_title)
 	root.geometry(f"{_win_x}x{_win_y}+{_win_pos_x}+{_win_pos_y}")
 	root.resizable(_win_scale_x, _win_scale_y)
@@ -105,8 +107,40 @@ def _win_init() -> None:
 	if _win_icon:
 		root.iconbitmap(_win_icon)
 	
+	#Adding the master frame to be cleared and reconstructed
+	master = Frame(root, bg="#cafe01", height=_win_y, width=_win_x)
+	master.pack()
+
+	#Returning name of first frame to be loaded
 	return data['init']['loadframe']
 
-def _win_loadframe(frame:str) -> None:
+
+def _win_loadframe(data:dict, frame:str) -> None:
 	"""Loads a frame to be rendered"""
-	raise NotImplementedError
+
+	if frame not in data:
+		_warn("Frame ["+frame+"] not found")
+		return
+	
+	
+
+	for _w in data[frame]:
+		if _w['type'] in ('label', 'button', 'canvas'):
+			pass
+
+
+def _win_main(events:tuple = ()) -> None:
+	"""Initialize the mainloop of window"""
+	while True:
+		#Update main window view
+		root.update()
+
+		#For any user defined events call them now
+		for _e in events:
+			_e()
+
+		#Dynamically update master frame size
+		root.winfo_children()[0].config(width=root.winfo_width(), height=root.winfo_height())
+
+_win_init({'init':{'loadframe':''}})
+_win_main()
