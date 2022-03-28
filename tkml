@@ -1,9 +1,7 @@
 #! /usr/bin/env python3.10
 
 import os, sys
-
 from src import _debug, _warn, _help, _render, _run
-
 
 def main() -> None:
 	"""Main"""
@@ -21,7 +19,6 @@ def main() -> None:
 
 	else:
 		_help()
-
 
 
 if __name__ == '__main__':
