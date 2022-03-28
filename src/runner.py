@@ -12,11 +12,17 @@ def run(path:str) -> None:
 		_warn("No data recovered")
 		sys.exit()
 
-	frame = _win_init()
+	try:
+		frame = _win_init()
+	except KeyError:
+		_warn("No loadframe found")
+		sys.exit()
 
 	if not root:
 		_warn("Root not initialized, tkml core error")
 		sys.exit()
+
+	_win_loadframe(frame)
 
 
 def _win_init() -> None:
@@ -100,3 +106,7 @@ def _win_init() -> None:
 		root.iconbitmap(_win_icon)
 	
 	return data['init']['loadframe']
+
+def _win_loadframe(frame:str) -> None:
+	"""Loads a frame to be rendered"""
+	raise NotImplementedError
