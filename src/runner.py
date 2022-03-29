@@ -2,7 +2,7 @@
 
 import sys
 from tkinter import *
-from util import _read, _warn
+from .util import _read, _warn
 
 def run(path:str) -> None:
 	"""Used to live run a tkml file"""
@@ -22,7 +22,7 @@ def run(path:str) -> None:
 		_warn("Root not initialized, tkml core error")
 		sys.exit()
 
-	_win_loadframe(frame)
+	_win_loadframe(data, frame)
 
 	_win_main()
 
@@ -57,45 +57,46 @@ def _win_init(data:dict) -> None:
 	_win_opacity:float = 1.0
 	_win_icon:str = None
 
-	for _flag in data['init']:
-		match _flag:
-			case 'title':
-				_win_title = data['init']['title']
-			case 'width':
-				_win_x = int(data['init']['width'])
-			case 'height':
-				_win_y = int(data['init']['height'])
-			case 'geo':
-				_win_x, _win_y = map(int, data['init']['geo'].split('x'))
-			case 'posX':
-				_win_pos_x = int(data['init']['posX'])
-			case 'posY':
-				_win_pos_y = int(data['init']['posY'])
-			case 'pos':
-				_win_pos_x, _win_pos_y = map(int, data['init']['pos'].split('x'))
-			case 'scaleX':
-				_win_scale_x = bool(data['init']['scaleX'])
-			case 'scaleY':
-				_win_scale_y = bool(data['init']['scaleY'])
-			case 'scale':
-				_win_scale_x = bool(data['init']['scale'])
-				_win_scale_y = bool(data['init']['scale'])
-			case 'maxSizeX':
-				_win_max_x = int(data['init']['maxSizeX'])
-			case 'maxSizeY':
-				_win_max_y = int(data['init']['maxSizeY'])
-			case 'maxSize':
-				_win_max_x, _win_max_y = map(int, data['init']['maxSize'].split('x'))
-			case 'minSizeX':
-				_win_min_x = int(data['init']['minSizeX'])
-			case 'minSizeY':
-				_win_min_y = int(data['init']['minSizeY'])
-			case 'minSize':
-				_win_min_x, _win_min_y = map(int, data['init']['minSize'].split('x'))
-			case 'opacity':
-				_win_opacity = float(data['init']['opacity'])
-			case 'icon':
-				_win_icon = data['init']['icon']
+	if len(data['init']) != 0:
+		for _flag in data['init']:
+			match _flag:
+				case 'title':
+					_win_title = data['init']['title']
+				case 'width':
+					_win_x = int(data['init']['width'])
+				case 'height':
+					_win_y = int(data['init']['height'])
+				case 'geo':
+					_win_x, _win_y = map(int, data['init']['geo'].split('x'))
+				case 'posX':
+					_win_pos_x = int(data['init']['posX'])
+				case 'posY':
+					_win_pos_y = int(data['init']['posY'])
+				case 'pos':
+					_win_pos_x, _win_pos_y = map(int, data['init']['pos'].split('x'))
+				case 'scaleX':
+					_win_scale_x = bool(data['init']['scaleX'])
+				case 'scaleY':
+					_win_scale_y = bool(data['init']['scaleY'])
+				case 'scale':
+					_win_scale_x = bool(data['init']['scale'])
+					_win_scale_y = bool(data['init']['scale'])
+				case 'maxSizeX':
+					_win_max_x = int(data['init']['maxSizeX'])
+				case 'maxSizeY':
+					_win_max_y = int(data['init']['maxSizeY'])
+				case 'maxSize':
+					_win_max_x, _win_max_y = map(int, data['init']['maxSize'].split('x'))
+				case 'minSizeX':
+					_win_min_x = int(data['init']['minSizeX'])
+				case 'minSizeY':
+					_win_min_y = int(data['init']['minSizeY'])
+				case 'minSize':
+					_win_min_x, _win_min_y = map(int, data['init']['minSize'].split('x'))
+				case 'opacity':
+					_win_opacity = float(data['init']['opacity'])
+				case 'icon':
+					_win_icon = data['init']['icon']
 	
 	#Setting root window attributes
 	root.title(_win_title)
@@ -108,7 +109,7 @@ def _win_init(data:dict) -> None:
 		root.iconbitmap(_win_icon)
 	
 	#Adding the master frame to be cleared and reconstructed
-	master = Frame(root, bg="#cafe01", height=_win_y, width=_win_x)
+	master = Frame(root, bg="#000000", height=_win_y, width=_win_x)
 	master.pack()
 
 	#Returning name of first frame to be loaded
@@ -122,11 +123,28 @@ def _win_loadframe(data:dict, frame:str) -> None:
 		_warn("Frame ["+frame+"] not found")
 		return
 	
-	
+	#Destroy previous master frame
+	root.winfo_children()[0].destroy()
+
+	#Build new frame
+	master = Frame(root, bg="#000000", height=root.winfo_height(), width=root.winfo_width())
+	master.pack()
 
 	for _w in data[frame]:
-		if _w['type'] in ('label', 'button', 'canvas'):
-			pass
+		if 'master' in _w:
+			_w_master = _w['master']
+		else:
+			_w_master = master
+
+		if 'pos' in _w:
+			_w_pos_x, _w_pos_y = map(int, data[frame][_w]['pos'].split('x'))
+
+		try:
+			globals()[_w] = globals()[data[frame][_w]['type']](_w_master, **{_k: data[frame][_w][_k] for _k in data[frame][_w] if _k in ('text', 'bg', 'fg')})
+			globals()[_w].pack()
+		except KeyError:
+			_warn("Type label for widget")
+			sys.exit()
 
 
 def _win_main(events:tuple = ()) -> None:
@@ -138,9 +156,3 @@ def _win_main(events:tuple = ()) -> None:
 		#For any user defined events call them now
 		for _e in events:
 			_e()
-
-		#Dynamically update master frame size
-		root.winfo_children()[0].config(width=root.winfo_width(), height=root.winfo_height())
-
-_win_init({'init':{'loadframe':''}})
-_win_main()
