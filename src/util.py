@@ -18,7 +18,7 @@ def _read(path:str):
 	
 	try:
 		if 'yaml' in sys.argv:
-			return yaml.load(path)
+			return yaml.load(open(path, 'r'), Loader=yaml.FullLoader)
 		elif 'json' in sys.argv:
 			return json.load(open(path, 'r'))
 		else:
