@@ -18,7 +18,7 @@ def run(path:str) -> None:
 		sys.exit()
 
 	if not root:
-		_warn("Root not initialized, tkml core error")
+		_warn("Root not initialized")
 		sys.exit()
 
 	_win_loadframe(data, frame)
@@ -30,7 +30,9 @@ def _win_init(data:dict) -> None:
 
 	globals()['root'] = Tk()
 
-	if 'init' not in data:
+	try:
+		data['init']
+	except KeyError:
 		_warn("Init not found")
 		sys.exit()
 	
@@ -113,7 +115,9 @@ def _win_init(data:dict) -> None:
 def _win_loadframe(data:dict, frame:str) -> None:
 	"""Loads a frame to be rendered"""
 
-	if frame not in data:
+	try:
+		data[frame]
+	except KeyError:
 		_warn("Frame ["+frame+"] not found")
 		return
 
@@ -123,12 +127,11 @@ def _win_loadframe(data:dict, frame:str) -> None:
 	for _w in data[frame]:
 		_w_master = root if 'master' not in _w else _w['master']
 
-		if 'pos' in _w:
-			_w_pos_x, _w_pos_y = map(int, data[frame][_w]['pos'].split('x'))
-
+		_w_pos_x, _w_pos_y = ((root.winfo_screenwidth()//2),(root.winfo_screenheight()//2)) if 'pos' not in _w else map(int, data[frame][_w]['pos'].split('x'))
+		_w_pad_x, _w_pad_y = (0,0) if 'pad' not in _w else map(int, data[frame][_w]['pad'].split('x'))
 		try:
 			globals()[_w] = globals()[data[frame][_w]['type']](_w_master, **{_k: data[frame][_w][_k] for _k in data[frame][_w] if _k in ('text', 'bg', 'fg')})
-			globals()[_w].pack()	#TODO replace with grid funcionality
+			globals()[_w].grid(row=_w_pos_y, column=_w_pos_x)
 		except KeyError:
 			_warn("No type given for widget")
 			continue
