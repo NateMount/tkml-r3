@@ -23,7 +23,6 @@ def run(path:str) -> None:
 		sys.exit()
 
 	_win_loadframe(data, frame)
-
 	_win_main()
 
 
@@ -33,7 +32,7 @@ def _win_init(data:dict) -> None:
 	globals()['root'] = Tk()
 
 	if 'init' not in data:
-		_warn("Init not found ... terminating program")
+		_warn("Init not found")
 		sys.exit()
 	
 	_screen_x:int = root.winfo_screenwidth()
@@ -45,6 +44,7 @@ def _win_init(data:dict) -> None:
 	_win_pos_y:int = int(_screen_y/2 - 250)
 
 	_win_title:str = 'My App'
+	_win_bg:str = '#000000'
 
 	_win_scale_x:bool = True
 	_win_scale_y:bool = True
@@ -97,6 +97,8 @@ def _win_init(data:dict) -> None:
 					_win_opacity = float(data['init']['opacity'])
 				case 'icon':
 					_win_icon = data['init']['icon']
+				case 'bg':
+					_win_bg = data['init']['bg']
 	
 	#Setting root window attributes
 	root.title(_win_title)
@@ -107,10 +109,7 @@ def _win_init(data:dict) -> None:
 	root.attributes('-alpha',_win_opacity)
 	if _win_icon:
 		root.iconbitmap(_win_icon)
-	
-	#Adding the master frame to be cleared and reconstructed
-	master = Frame(root, bg="#000000", height=_win_y, width=_win_x)
-	master.pack()
+	root.configure(bg=_win_bg)
 
 	#Returning name of first frame to be loaded
 	return data['init']['loadframe']
@@ -122,29 +121,25 @@ def _win_loadframe(data:dict, frame:str) -> None:
 	if frame not in data:
 		_warn("Frame ["+frame+"] not found")
 		return
-	
-	#Destroy previous master frame
-	root.winfo_children()[0].destroy()
 
-	#Build new frame
-	master = Frame(root, bg="#000000", height=root.winfo_height(), width=root.winfo_width())
-	master.pack()
+	for _c in root.winfo_children():
+		_c.destroy()
 
 	for _w in data[frame]:
 		if 'master' in _w:
 			_w_master = _w['master']
 		else:
-			_w_master = master
+			_w_master = root
 
 		if 'pos' in _w:
 			_w_pos_x, _w_pos_y = map(int, data[frame][_w]['pos'].split('x'))
 
 		try:
 			globals()[_w] = globals()[data[frame][_w]['type']](_w_master, **{_k: data[frame][_w][_k] for _k in data[frame][_w] if _k in ('text', 'bg', 'fg')})
-			globals()[_w].pack()
+			globals()[_w].pack()	#TODO replace with grid funcionality
 		except KeyError:
-			_warn("Type label for widget")
-			sys.exit()
+			_warn("No type given for widget")
+			continue
 
 
 def _win_main(events:tuple = ()) -> None:
@@ -156,3 +151,4 @@ def _win_main(events:tuple = ()) -> None:
 		#For any user defined events call them now
 		for _e in events:
 			_e()
+
