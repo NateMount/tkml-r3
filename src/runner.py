@@ -7,8 +7,7 @@ from .util import _read, _warn
 def run(path:str) -> None:
 	"""Used to live run a tkml file"""
 	
-	data = _read(path)
-	if not data:
+	if not (data := _read(path)):
 		_warn("No data recovered")
 		sys.exit()
 
@@ -54,7 +53,6 @@ def _win_init(data:dict) -> None:
 	_win_min_x:int = 300
 	_win_min_y:int = 300
 
-	_win_opacity:float = 1.0
 	_win_icon:str = None
 
 	if len(data['init']) != 0:
@@ -93,8 +91,6 @@ def _win_init(data:dict) -> None:
 					_win_min_y = int(data['init']['minSizeY'])
 				case 'minSize':
 					_win_min_x, _win_min_y = map(int, data['init']['minSize'].split('x'))
-				case 'opacity':
-					_win_opacity = float(data['init']['opacity'])
 				case 'icon':
 					_win_icon = data['init']['icon']
 				case 'bg':
@@ -106,7 +102,6 @@ def _win_init(data:dict) -> None:
 	root.resizable(_win_scale_x, _win_scale_y)
 	root.minsize(_win_min_x,_win_min_y)
 	root.maxsize(_win_max_x,_win_max_y)
-	root.attributes('-alpha',_win_opacity)
 	if _win_icon:
 		root.iconbitmap(_win_icon)
 	root.configure(bg=_win_bg)
@@ -126,10 +121,7 @@ def _win_loadframe(data:dict, frame:str) -> None:
 		_c.destroy()
 
 	for _w in data[frame]:
-		if 'master' in _w:
-			_w_master = _w['master']
-		else:
-			_w_master = root
+		_w_master = root if 'master' not in _w else _w['master']
 
 		if 'pos' in _w:
 			_w_pos_x, _w_pos_y = map(int, data[frame][_w]['pos'].split('x'))
