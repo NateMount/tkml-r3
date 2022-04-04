@@ -129,12 +129,14 @@ def _win_loadframe(data:dict, frame:str) -> None:
 
 		_w_pos_x, _w_pos_y = ((root.winfo_screenwidth()//2),(root.winfo_screenheight()//2)) if 'pos' not in _w else map(int, data[frame][_w]['pos'].split('x'))
 		_w_pad_x, _w_pad_y = (0,0) if 'pad' not in _w else map(int, data[frame][_w]['pad'].split('x'))
+		_w_span_x, _w_span_y = (1,1) if 'span' not in _w else map(int, data[frame][_w]['span'].split('x'))
+		_w_align = "" if 'align' not in _w else data[frame][_w]['align'].upper()
 
 		#TODO filter and modify parameters given to widgets
 
 		try:
 			globals()[_w] = globals()[data[frame][_w]['type']](_w_master, **{_k: data[frame][_w][_k] for _k in data[frame][_w] if _k in ('text', 'bg', 'fg')})
-			globals()[_w].grid(row=_w_pos_y, column=_w_pos_x)
+			globals()[_w].grid(row=_w_pos_y, column=_w_pos_x, padx=_w_pad_x, pady=_w_pad_y, columnspan=_w_span_x, rowspan=_w_span_y, sticky=_w_align)
 		except KeyError:
 			_warn("No type given for widget")
 			continue
@@ -144,8 +146,10 @@ def _win_main(events:tuple = ()) -> None:
 	"""Initialize the mainloop of window"""
 	while True:
 		#Update main window view
-		root.update()
-
+		try:
+			root.update()
+		except TclError:
+			sys.exit()
 		#For any user defined events call them now
 		for _e in events:
 			_e()
