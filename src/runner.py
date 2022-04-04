@@ -12,7 +12,7 @@ def run(path:str) -> None:
 		sys.exit()
 
 	try:
-		frame = _win_init(data)
+		frame:str = _win_init(data)
 	except KeyError:
 		_warn("No loadframe found")
 		sys.exit()
@@ -129,6 +129,9 @@ def _win_loadframe(data:dict, frame:str) -> None:
 
 		_w_pos_x, _w_pos_y = ((root.winfo_screenwidth()//2),(root.winfo_screenheight()//2)) if 'pos' not in _w else map(int, data[frame][_w]['pos'].split('x'))
 		_w_pad_x, _w_pad_y = (0,0) if 'pad' not in _w else map(int, data[frame][_w]['pad'].split('x'))
+
+		#TODO filter and modify parameters given to widgets
+
 		try:
 			globals()[_w] = globals()[data[frame][_w]['type']](_w_master, **{_k: data[frame][_w][_k] for _k in data[frame][_w] if _k in ('text', 'bg', 'fg')})
 			globals()[_w].grid(row=_w_pos_y, column=_w_pos_x)
