@@ -4,112 +4,108 @@ import sys
 from tkinter import *
 from .util import _read, _warn
 
+WIDGETS = {'Button', 'Label', 'Canvas', 'Frame', 'Scrollbar', 'LabelFrame', 'CheckButton', 'Entry', 'Spinbox', 'Scale', 'PanedWindow', 'Menu', 'Menubutton', 'Notebook', 'Combobox', 'Progressbar', 'Seperator', 'Sizegrip', 'Treeview'}
+
 def run(path:str) -> None:
-	"""Used to live run a tkml file"""
+	"""Live runs tkml app on top of tkml interpreter"""
+
+	if not (_data := _read(path)):
+		_warn("No data recovered from file")
+		sys.exit()
+
+	if 'init' not in _data:
+		_warn("Init frame not found")
+		sys.exit()
+
+	_win_load_configs(_data)
+
+	_win_init(_data)
 	
-	if not (data := _read(path)):
-		_warn("No data recovered")
-		sys.exit()
-
-	try:
-		frame:str = _win_init(data)
-	except KeyError:
-		_warn("No loadframe found")
-		sys.exit()
-
-	if not root:
-		_warn("Root not initialized")
-		sys.exit()
-
-	_win_loadframe(data, frame)
+	if 'loadframe' in _data['init']:
+		_win_loadframe(_data, _data['init']['loadframe'])
+	
 	_win_main()
 
 
 def _win_init(data:dict) -> None:
-	"""Initializes the tkinter window environment"""
+	"""Initialize the Tkinter window environment"""
 
 	globals()['root'] = Tk()
 
-	try:
-		data['init']
-	except KeyError:
-		_warn("Init not found")
-		sys.exit()
-	
+	#Creating init var for simplicity
+	_init:dict = data['init']
+
+	#Getting user screen dimensions
 	_screen_x:int = root.winfo_screenwidth()
 	_screen_y:int = root.winfo_screenheight()
 
-	_win_y:int = 500
-	_win_x:int = 500
-	_win_pos_x:int = int(_screen_x/2 - 250)
-	_win_pos_y:int = int(_screen_y/2 - 250)
+	#Retriving window properties
+	_win_title:str = 'App' if 'title' not in _init else _init['title']	
+	_win_x, _win_y = (500, 500) if 'dim' not in _init else map(int, _init['dim'].split('x'))
+	_win_pos_x, _win_pos_y = (_screen_x//2 - _win_x//2, _screen_y//2 - _win_y//2)
+	_win_bg = '#000000' if 'bg' not in _init else _init['bg']
+	_win_scale_x, _win_scale_y = (True, True) if 'scale' not in _init else map(bool, _init['scale'].split())
+	_win_max_x, _win_max_y = (1200, 1200) if 'max' not in _init else map(int, _init['max'].split('x'))
+	_win_min_x, _win_min_y = (300, 300) if 'min' not in _init else map(int, _init['min'].split('x'))
+	_win_icon_path:str = None if 'icon' not in _init else _init['icon']
 
-	_win_title:str = 'My App'
-	_win_bg:str = '#000000'
-
-	_win_scale_x:bool = True
-	_win_scale_y:bool = True
-
-	_win_max_x:int = 1200
-	_win_max_y:int = 1200
-	_win_min_x:int = 300
-	_win_min_y:int = 300
-
-	_win_icon:str = None
-
-	if len(data['init']) != 0:
-		for _flag in data['init']:
-			match _flag:
-				case 'title':
-					_win_title = data['init']['title']
-				case 'width':
-					_win_x = int(data['init']['width'])
-				case 'height':
-					_win_y = int(data['init']['height'])
-				case 'geo':
-					_win_x, _win_y = map(int, data['init']['geo'].split('x'))
-				case 'posX':
-					_win_pos_x = int(data['init']['posX'])
-				case 'posY':
-					_win_pos_y = int(data['init']['posY'])
-				case 'pos':
-					_win_pos_x, _win_pos_y = map(int, data['init']['pos'].split('x'))
-				case 'scaleX':
-					_win_scale_x = bool(data['init']['scaleX'])
-				case 'scaleY':
-					_win_scale_y = bool(data['init']['scaleY'])
-				case 'scale':
-					_win_scale_x = bool(data['init']['scale'])
-					_win_scale_y = bool(data['init']['scale'])
-				case 'maxSizeX':
-					_win_max_x = int(data['init']['maxSizeX'])
-				case 'maxSizeY':
-					_win_max_y = int(data['init']['maxSizeY'])
-				case 'maxSize':
-					_win_max_x, _win_max_y = map(int, data['init']['maxSize'].split('x'))
-				case 'minSizeX':
-					_win_min_x = int(data['init']['minSizeX'])
-				case 'minSizeY':
-					_win_min_y = int(data['init']['minSizeY'])
-				case 'minSize':
-					_win_min_x, _win_min_y = map(int, data['init']['minSize'].split('x'))
-				case 'icon':
-					_win_icon = data['init']['icon']
-				case 'bg':
-					_win_bg = data['init']['bg']
-	
 	#Setting root window attributes
 	root.title(_win_title)
 	root.geometry(f"{_win_x}x{_win_y}+{_win_pos_x}+{_win_pos_y}")
 	root.resizable(_win_scale_x, _win_scale_y)
 	root.minsize(_win_min_x,_win_min_y)
 	root.maxsize(_win_max_x,_win_max_y)
-	if _win_icon:
-		root.iconbitmap(_win_icon)
+
+	if _win_icon_path:
+		root.iconbitmap(_win_icon_path)
+	
 	root.configure(bg=_win_bg)
 
-	#Returning name of first frame to be loaded
-	return data['init']['loadframe']
+
+def _win_load_configs(data:dict) -> None:
+	"""Loads in data from configs header"""
+
+	if 'configs' not in data:
+		return
+	
+	if 'use' in data['configs']:
+		for _module in data['configs']['use']:
+
+			_win_load_module(_module)
+
+
+def _win_clear() -> None:
+	"""Clears current window state of all widgets"""
+
+	[_c.destroy() for _c in root.winfo_children() if _c]
+
+
+def _win_mod_params(widget:str, params:dict) -> dict:
+	"""Modifies the types of the params to match types for Tkinter"""
+
+	#TODO Implement vetting for parameters
+
+	return params
+
+
+def _win_render_widget(data:dict) -> Widget:
+	"""Renders a widget from given data"""
+
+	if 'type' not in data:
+		_warn(f"Undefined widget type [{name}]")
+		return None
+	elif data['type'] not in WIDGETS:
+		_warn(f"Illegal widget type")
+		return None
+
+	#Tuple of all universally legal parameters
+	_legal:tuple = ('activebackground', 'activeforeground', 'anchor', 'background', 'bd', 'bg', 'bitmap', 'borderwidth', 'command', 'compound', 'cursor', 'default', 'disabledforeground', 'fg', 'font', 'foreground', 'height', 'highlightbackground', 'highlightcolor', 'highlightthickness', 'image', 'justify', 'overrelief', 'padx', 'pady', 'relief', 'repeatdelay', 'repeatinterval', 'state', 'takefocus', 'text', 'textvariable', 'underline', 'width', 'wraplength', 'closeenough', 'confine', 'insertbackground', 'insertborderwidth', 'insertofftime', 'insertontime', 'insertwidth', 'offset', 'scrollregion', 'selectbackground', 'selectborderwidth', 'selectforeground', 'xscrollcommand', 'xscrollincrement', 'yscrollcommand', 'yscrollincrement', 'class', 'colormap', 'container', 'visual', 'activerelief', 'elementborderwidth', 'jump', 'orient', 'troughcolor', 'labelanchor', 'labelwidget', 'indicatoron', 'offrelief', 'offvalue', 'onvalue', 'selectcolor', 'selectimage', 'tristateimage', 'tristatevalue', 'variable', 'disabledbackground', 'exportselection', 'invalidcommand', 'invcmd', 'readonlybackground', 'show', 'validate', 'validatecommand', 'vcmd', 'buttonbackground', 'buttoncursor', 'buttondownrelief', 'buttonuprelief', 'format', 'from', 'increment', 'to', 'values', 'wrap', 'bigincrement', 'digits', 'label', 'length', 'resolution', 'showvalue', 'sliderlength', 'sliderrelief', 'tickinterval', 'handlepad', 'handlesize', 'opaqueresize', 'proxybackground', 'proxyborderwidth', 'proxyrelief', 'sashcursor', 'sashpad', 'sashrelief', 'sashwidth', 'showhandle', 'activeborderwidth', 'postcommand', 'tearoff', 'tearoffcommand', 'title', 'direction', 'menu', 'padding', 'style', 'mode', 'maximum', 'value', 'phase', 'columns', 'displaycolumns', 'selectmode')
+
+
+	_w_params:dict = _win_mod_params(data['type'], {_k : data[_k] for _k in data if _k in _legal})
+	_w_master = root if 'master' not in data else globals()[data['master']]
+
+	return globals()[data['type']](_w_master, **_w_params)
 
 
 def _win_loadframe(data:dict, frame:str) -> None:
@@ -118,13 +114,13 @@ def _win_loadframe(data:dict, frame:str) -> None:
 	try:
 		data[frame]
 	except KeyError:
-		_warn("Frame ["+frame+"] not found")
+		_warn(f"Frame [{frame}] not found")
 		return
-
-	for _c in root.winfo_children():
-		_c.destroy()
+	
+	_win_clear()
 
 	for _w in data[frame]:
+		
 		_w_master = root if 'master' not in _w else _w['master']
 
 		_w_pos_x, _w_pos_y = ((root.winfo_screenwidth()//2),(root.winfo_screenheight()//2)) if 'pos' not in _w else map(int, data[frame][_w]['pos'].split('x'))
@@ -132,25 +128,16 @@ def _win_loadframe(data:dict, frame:str) -> None:
 		_w_span_x, _w_span_y = (1,1) if 'span' not in _w else map(int, data[frame][_w]['span'].split('x'))
 		_w_align = "" if 'align' not in _w else data[frame][_w]['align'].upper()
 
-		#TODO filter and modify parameters given to widgets
-
-		try:
-			globals()[_w] = globals()[data[frame][_w]['type']](_w_master, **{_k: data[frame][_w][_k] for _k in data[frame][_w] if _k in ('text', 'bg', 'fg')})
-			globals()[_w].grid(row=_w_pos_y, column=_w_pos_x, padx=_w_pad_x, pady=_w_pad_y, columnspan=_w_span_x, rowspan=_w_span_y, sticky=_w_align)
-		except KeyError:
-			_warn("No type given for widget")
-			continue
+		globals()[_w] = _win_render_widget(data[frame][_w])
+		globals()[_w].grid(row=_w_pos_y, column=_w_pos_x, padx=_w_pad_x,pady=_w_pad_y, columnspan=_w_span_x, rowspan=_w_span_y, sticky=_w_align)
 
 
 def _win_main(events:tuple = ()) -> None:
-	"""Initialize the mainloop of window"""
+	"""Initialize the main window view"""
 	while True:
-		#Update main window view
 		try:
 			root.update()
 		except TclError:
 			sys.exit()
-		#For any user defined events call them now
-		for _e in events:
-			_e()
 
+		[_e() for _e in events]
