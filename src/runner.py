@@ -1,6 +1,6 @@
 #! /usr/bin/env python3.10
 
-import sys
+import os, sys
 from tkinter import *
 from .util import _read, _warn
 
@@ -60,6 +60,23 @@ def _win_init(data:dict) -> None:
 		root.iconbitmap(_win_icon_path)
 	
 	root.configure(bg=_win_bg)
+
+
+def _win_load_module(module:str) -> None:
+	"""Loads in important data from module"""
+
+	if module not in (*os.listdir(), *os.listdir('./modules'))
+		_warn(f"Module [{module}] not found")
+		return
+	
+	_module_data = open(module, 'r').read()
+	if '&TKML' in _module_data.split('\n')[0:2]:
+		pass
+	else:
+		exec(_module_data)
+		for line in _module_data.split('\n'):
+			if line.startswith('def WIDGET_'):
+				globals()['WIDGETS'].append(line.split('WIDGET_')[-1].split('(')[0].strip())
 
 
 def _win_load_configs(data:dict) -> None:
