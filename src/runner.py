@@ -3,7 +3,7 @@
 import os, sys
 from tkinter import *
 from tkinter.ttk import *
-from .util import _read, _warn
+from .util import _read, _warn, _debug
 
 WIDGETS = {
 	'Button',
@@ -33,9 +33,13 @@ def run(path:str) -> None:
 	@param path: path to tkml file to be run
 	"""
 
+	_debug("FUNCTION [_run] CALLED")
+
 	if not (_data := _read(path)):
 		_warn("No data recovered from file")
 		sys.exit()
+	
+	_debug(f"DATA : {_data}")
 
 	if 'init' not in _data:
 		_warn("Init frame not found")
@@ -49,6 +53,8 @@ def run(path:str) -> None:
 	
 	_events = {} if 'events' not in _data else _data['events']
 	
+	_debug(f"EVENTS : {_events}")
+
 	_win_main(_events)
 
 
@@ -90,6 +96,8 @@ def _win_init(data:dict) -> None:
 	
 	root.configure(bg=_win_bg)
 
+	_debug("WINDOW INITIALIZED")
+
 
 def _win_load_module(module:str) -> None:
 	"""
@@ -130,7 +138,7 @@ def _win_clear() -> None:
 	Clears current window state of all widgets
 	@post: all children of root destroyed
 	"""
-
+	_debug("WINDOW CLEARED")
 	[_c.destroy() for _c in root.winfo_children() if _c]
 
 
@@ -153,6 +161,7 @@ def _win_render_widget(data:dict) -> Widget:
 
 
 	_w_params:dict = {_k : data[_k] for _k in data if _k in _legal}
+	_debug(f"WIDGET PARAMS {_w_params}")
 	_w_master = root if 'master' not in data else globals()[data['master']]
 
 	return globals()[data['type']](_w_master, **_w_params)
@@ -175,6 +184,8 @@ def _win_loadframe(data:dict, frame:str) -> None:
 
 	for _w in data[frame]:
 		
+		_debug(f"LOADING WIDGET : [{_w}]")
+		_debug(f"WIDGET DATA: ", data[frame][_w])
 		_w_master = root if 'master' not in _w else _w['master']
 
 		_w_pos_x, _w_pos_y = ((root.winfo_screenwidth()//2),(root.winfo_screenheight()//2)) if 'pos' not in _w else map(int, data[frame][_w]['pos'].split('x'))
@@ -182,8 +193,12 @@ def _win_loadframe(data:dict, frame:str) -> None:
 		_w_span_x, _w_span_y = (1,1) if 'span' not in _w else map(int, data[frame][_w]['span'].split('x'))
 		_w_align = "" if 'align' not in _w else data[frame][_w]['align'].upper()
 
+		_debug(f"WIDGET MASTER [{_w_master}]")
+		_debug(f"WIDGET POS [{_w_pos_x}][{_w_pos_y}]")
 		globals()[_w] = _win_render_widget(data[frame][_w])
 		globals()[_w].grid(row=_w_pos_y, column=_w_pos_x, padx=_w_pad_x,pady=_w_pad_y, columnspan=_w_span_x, rowspan=_w_span_y, sticky=_w_align)
+
+	_debug("FRAME LOADED")
 
 
 def _win_main(events:dict) -> None:
