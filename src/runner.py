@@ -2,7 +2,6 @@
 
 import os, sys
 from tkinter import *
-from tkinter.ttk import *
 from .util import _read, _warn, _debug
 
 WIDGETS = {
@@ -188,10 +187,10 @@ def _win_loadframe(data:dict, frame:str) -> None:
 		_debug(f"WIDGET DATA: ", data[frame][_w])
 		_w_master = root if 'master' not in _w else _w['master']
 
-		_w_pos_x, _w_pos_y = ((root.winfo_screenwidth()//2),(root.winfo_screenheight()//2)) if 'pos' not in _w else map(int, data[frame][_w]['pos'].split('x'))
-		_w_pad_x, _w_pad_y = (0,0) if 'pad' not in _w else map(int, data[frame][_w]['pad'].split('x'))
-		_w_span_x, _w_span_y = (1,1) if 'span' not in _w else map(int, data[frame][_w]['span'].split('x'))
-		_w_align = "" if 'align' not in _w else data[frame][_w]['align'].upper()
+		_w_pos_x, _w_pos_y = (0,0) if 'pos' not in data[frame][_w] else map(int, data[frame][_w]['pos'].split('x'))
+		_w_pad_x, _w_pad_y = (0,0) if 'pad' not in data[frame][_w] else map(int, data[frame][_w]['pad'].split('x'))
+		_w_span_x, _w_span_y = (1,1) if 'span' not in data[frame][_w] else map(int, data[frame][_w]['span'].split('x'))
+		_w_align = "" if 'align' not in data[frame][_w] else data[frame][_w]['align'].upper()
 
 		_debug(f"WIDGET MASTER [{_w_master}]")
 		_debug(f"WIDGET POS [{_w_pos_x}][{_w_pos_y}]")
