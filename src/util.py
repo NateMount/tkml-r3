@@ -13,7 +13,7 @@ def _debug(*args, **kwargs) -> None:
 	"""
 
 	if '--debug' in sys.argv:
-		print('\033[38;2;248;153;47m\033[48;2;46;47;46m [DEBUG] '*args, **kwargs, sep=' ', end='')
+		print('\033[38;2;248;153;47m\033[48;2;46;47;46m [DEBUG] ', *args, **kwargs, sep=' ', end='')
 		print('\033[0m')
 
 
