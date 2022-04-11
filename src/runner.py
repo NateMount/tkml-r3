@@ -1,13 +1,36 @@
 #! /usr/bin/env python3.10
 
 import os, sys
-from tkinter import *
+from tkinter.ttk import *
 from .util import _read, _warn
 
-WIDGETS = {'Button', 'Label', 'Canvas', 'Frame', 'Scrollbar', 'LabelFrame', 'CheckButton', 'Entry', 'Spinbox', 'Scale', 'PanedWindow', 'Menu', 'Menubutton', 'Notebook', 'Combobox', 'Progressbar', 'Seperator', 'Sizegrip', 'Treeview'}
+WIDGETS = {
+	'Button',
+	'Label',
+	'Canvas',
+	'Frame',
+	'Scrollbar',
+	'LabelFrame',
+	'CheckButton',
+	'Entry',
+	'Spinbox',
+	'Scale',
+	'PanedWindow',
+	'Menu',
+	'Menubutton',
+	'Notebook',
+	'Combobox',
+	'Progressbar',
+	'Seperator',
+	'Sizegrip',
+	'Treeview'
+}
 
 def run(path:str) -> None:
-	"""Live runs tkml app on top of tkml interpreter"""
+	"""
+	Live runs tkml app on top of tkml interpreter
+	@param path: path to tkml file to be run
+	"""
 
 	if not (_data := _read(path)):
 		_warn("No data recovered from file")
@@ -18,17 +41,22 @@ def run(path:str) -> None:
 		sys.exit()
 
 	_win_load_configs(_data)
-
 	_win_init(_data)
 	
 	if 'loadframe' in _data['init']:
 		_win_loadframe(_data, _data['init']['loadframe'])
 	
-	_win_main()
+	_events = {} if 'events' not in _data else _data['events']
+	
+	_win_main(_events)
 
 
 def _win_init(data:dict) -> None:
-	"""Initialize the Tkinter window environment"""
+	"""
+	Initialize the Tkinter window environment
+	@param data: dictionary containing frame structure data
+	@post: global variable root created
+	"""
 
 	globals()['root'] = Tk()
 
@@ -63,24 +91,29 @@ def _win_init(data:dict) -> None:
 
 
 def _win_load_module(module:str) -> None:
-	"""Loads in important data from module"""
+	"""
+	Loads in important data from module
+	@param module: Name of module to be loaded for execution
+	@post: module custom widgets added to widgets list 
+	"""
 
-	if module not in (*os.listdir(), *os.listdir('./modules'))
+	if module not in (*os.listdir(), *os.listdir('./modules')):
 		_warn(f"Module [{module}] not found")
 		return
 	
 	_module_data = open(module, 'r').read()
-	if '&TKML' in _module_data.split('\n')[0:2]:
-		pass
-	else:
-		exec(_module_data)
-		for line in _module_data.split('\n'):
-			if line.startswith('def WIDGET_'):
-				globals()['WIDGETS'].append(line.split('WIDGET_')[-1].split('(')[0].strip())
+	exec(_module_data)
+	for line in _module_data.split('\n'):
+		if line.startswith('def WIDGET_'):
+			globals()['WIDGETS'].append(line.split('WIDGET_')[-1].split('(')[0].strip())
 
 
 def _win_load_configs(data:dict) -> None:
-	"""Loads in data from configs header"""
+	"""
+	Loads in data from configs header
+	@param data: dictionary containing frame structure data
+	@post: config data added to global namespace
+	"""
 
 	if 'configs' not in data:
 		return
@@ -92,21 +125,20 @@ def _win_load_configs(data:dict) -> None:
 
 
 def _win_clear() -> None:
-	"""Clears current window state of all widgets"""
+	"""
+	Clears current window state of all widgets
+	@post: all children of root destroyed
+	"""
 
 	[_c.destroy() for _c in root.winfo_children() if _c]
 
 
-def _win_mod_params(widget:str, params:dict) -> dict:
-	"""Modifies the types of the params to match types for Tkinter"""
-
-	#TODO Implement vetting for parameters
-
-	return params
-
-
 def _win_render_widget(data:dict) -> Widget:
-	"""Renders a widget from given data"""
+	"""
+	Renders a widget from given data
+	@param data: dictionary containing data for widget
+	@return: widget built from passed params
+	"""
 
 	if 'type' not in data:
 		_warn(f"Undefined widget type [{name}]")
@@ -119,14 +151,18 @@ def _win_render_widget(data:dict) -> Widget:
 	_legal:tuple = ('activebackground', 'activeforeground', 'anchor', 'background', 'bd', 'bg', 'bitmap', 'borderwidth', 'command', 'compound', 'cursor', 'default', 'disabledforeground', 'fg', 'font', 'foreground', 'height', 'highlightbackground', 'highlightcolor', 'highlightthickness', 'image', 'justify', 'overrelief', 'padx', 'pady', 'relief', 'repeatdelay', 'repeatinterval', 'state', 'takefocus', 'text', 'textvariable', 'underline', 'width', 'wraplength', 'closeenough', 'confine', 'insertbackground', 'insertborderwidth', 'insertofftime', 'insertontime', 'insertwidth', 'offset', 'scrollregion', 'selectbackground', 'selectborderwidth', 'selectforeground', 'xscrollcommand', 'xscrollincrement', 'yscrollcommand', 'yscrollincrement', 'class', 'colormap', 'container', 'visual', 'activerelief', 'elementborderwidth', 'jump', 'orient', 'troughcolor', 'labelanchor', 'labelwidget', 'indicatoron', 'offrelief', 'offvalue', 'onvalue', 'selectcolor', 'selectimage', 'tristateimage', 'tristatevalue', 'variable', 'disabledbackground', 'exportselection', 'invalidcommand', 'invcmd', 'readonlybackground', 'show', 'validate', 'validatecommand', 'vcmd', 'buttonbackground', 'buttoncursor', 'buttondownrelief', 'buttonuprelief', 'format', 'from', 'increment', 'to', 'values', 'wrap', 'bigincrement', 'digits', 'label', 'length', 'resolution', 'showvalue', 'sliderlength', 'sliderrelief', 'tickinterval', 'handlepad', 'handlesize', 'opaqueresize', 'proxybackground', 'proxyborderwidth', 'proxyrelief', 'sashcursor', 'sashpad', 'sashrelief', 'sashwidth', 'showhandle', 'activeborderwidth', 'postcommand', 'tearoff', 'tearoffcommand', 'title', 'direction', 'menu', 'padding', 'style', 'mode', 'maximum', 'value', 'phase', 'columns', 'displaycolumns', 'selectmode')
 
 
-	_w_params:dict = _win_mod_params(data['type'], {_k : data[_k] for _k in data if _k in _legal})
+	_w_params:dict = {_k : data[_k] for _k in data if _k in _legal}
 	_w_master = root if 'master' not in data else globals()[data['master']]
 
 	return globals()[data['type']](_w_master, **_w_params)
 
 
 def _win_loadframe(data:dict, frame:str) -> None:
-	"""Loads a frame to be rendered"""
+	"""
+	Loads a frame to be rendered
+	@param data: dictionary containing frame structure data
+	@param frame: name of frame to be loaded
+	"""
 
 	try:
 		data[frame]
@@ -149,12 +185,18 @@ def _win_loadframe(data:dict, frame:str) -> None:
 		globals()[_w].grid(row=_w_pos_y, column=_w_pos_x, padx=_w_pad_x,pady=_w_pad_y, columnspan=_w_span_x, rowspan=_w_span_y, sticky=_w_align)
 
 
-def _win_main(events:tuple = ()) -> None:
-	"""Initialize the main window view"""
+def _win_main(events:dict) -> None:
+	"""
+	Initialize the main window view
+	@param events: Optional dict parameter containing function objects to be called each tick
+		       Keys are function names 
+		       Values are function parameters
+	"""
+
 	while True:
 		try:
 			root.update()
 		except TclError:
 			sys.exit()
 
-		[_e() for _e in events]
+		[globals()[_e](**events[_e]) for _e in events]
