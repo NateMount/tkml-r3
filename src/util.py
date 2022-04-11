@@ -4,6 +4,19 @@ import sys
 import yaml
 import json
 
+
+def _debug(*args, **kwargs) -> None:
+	"""
+	Display debug statement to stdout only if --debug flag set
+	@param args: list of arguments
+	@param kwargs: list of keyword arguments
+	"""
+
+	if '--debug' in sys.argv:
+		print('\033[38;2;248;153;47m\033[48;2;46;47;46m [DEBUG] '*args, **kwargs, sep=' ', end='')
+		print('\033[0m')
+
+
 def _warn(warning_str:str) -> None:
 	"""
 	Display warning text to stdout
