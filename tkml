@@ -1,27 +1,24 @@
 #! /usr/bin/env python3.10
 
 import os, sys
-from src import _debug, _warn, _help, _render, _xrender, _run
+from src import _debug, _warn, _help, _render, _build, _run
 
 def main() -> None:
 	"""Main"""
-	if len(sys.argv) == 1 or '--help' in sys.argv:
+	if len(sys.argv) < 3 or '--help' in sys.argv:
 		_help()
 
-	if 'run' in sys.argv:
-		_run(sys.argv[1])
-	
-	if 'render' in sys.argv:
-		_render(sys.argv[1])
-
-	if 'xrender' in sys.argv:
-		_xrender(sys.argv[1], sys.argv[-1])
-
-	if 'debug' in sys.argv:
-		_debug(sys.argv[1])
-
-	else:
-		_help()
+	match sys.argv[1]:
+		case 'run':
+			_run(sys.argv[2])
+		case 'build':
+			_build(sys.argv[2])
+		case 'render':
+			_render(sys.argv[2])
+		case 'debug':
+			_debug(sys.argv[2])
+		case _:
+			_help()
 
 
 if __name__ == '__main__':
