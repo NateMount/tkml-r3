@@ -1,6 +1,7 @@
 #! /usr/bin/env python3.10
 
 import os, sys
+from tkinter import *
 from tkinter.ttk import *
 from .util import _read, _warn
 

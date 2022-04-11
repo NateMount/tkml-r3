@@ -2,4 +2,11 @@
 
 def build(path:str) -> None:
 	"""Builds an executable file from tkml source file"""
-	raise NotImplementedError
+	
+	#READ IN FILE
+
+	#ADD MODULES
+
+	#ADD INITIAL STATE
+
+
