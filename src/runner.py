@@ -116,6 +116,26 @@ def _win_load_module(module:str) -> None:
 			globals()['WIDGETS'].append(line.split('WIDGET_')[-1].split('(')[0].strip())
 
 
+
+def _win_check_params(*params) -> list:
+	"""
+	Checks if parameters are universally valid
+	@param params: list of all params to be checked
+	"""
+
+	_r = []
+	for _p in params:
+		match _p[0]:
+			case '$':
+				_r.append(globals()[_p[1:]])
+			case '\\':
+				_r.append(_p.strip("\\"))
+			case _:
+				_r.append(_p)
+	
+	return _r
+
+
 def _win_load_configs(data:dict) -> None:
 	"""
 	Loads in data from configs header
@@ -125,7 +145,7 @@ def _win_load_configs(data:dict) -> None:
 
 	if 'configs' not in data:
 		return
-	
+
 	if 'use' in data['configs']:
 		for _module in data['configs']['use']:
 
@@ -159,7 +179,7 @@ def _win_render_widget(data:dict) -> Widget:
 	_legal:tuple = ('activebackground', 'activeforeground', 'anchor', 'background', 'bd', 'bg', 'bitmap', 'borderwidth', 'command', 'compound', 'cursor', 'default', 'disabledforeground', 'fg', 'font', 'foreground', 'height', 'highlightbackground', 'highlightcolor', 'highlightthickness', 'image', 'justify', 'overrelief', 'padx', 'pady', 'relief', 'repeatdelay', 'repeatinterval', 'state', 'takefocus', 'text', 'textvariable', 'underline', 'width', 'wraplength', 'closeenough', 'confine', 'insertbackground', 'insertborderwidth', 'insertofftime', 'insertontime', 'insertwidth', 'offset', 'scrollregion', 'selectbackground', 'selectborderwidth', 'selectforeground', 'xscrollcommand', 'xscrollincrement', 'yscrollcommand', 'yscrollincrement', 'class', 'colormap', 'container', 'visual', 'activerelief', 'elementborderwidth', 'jump', 'orient', 'troughcolor', 'labelanchor', 'labelwidget', 'indicatoron', 'offrelief', 'offvalue', 'onvalue', 'selectcolor', 'selectimage', 'tristateimage', 'tristatevalue', 'variable', 'disabledbackground', 'exportselection', 'invalidcommand', 'invcmd', 'readonlybackground', 'show', 'validate', 'validatecommand', 'vcmd', 'buttonbackground', 'buttoncursor', 'buttondownrelief', 'buttonuprelief', 'format', 'from', 'increment', 'to', 'values', 'wrap', 'bigincrement', 'digits', 'label', 'length', 'resolution', 'showvalue', 'sliderlength', 'sliderrelief', 'tickinterval', 'handlepad', 'handlesize', 'opaqueresize', 'proxybackground', 'proxyborderwidth', 'proxyrelief', 'sashcursor', 'sashpad', 'sashrelief', 'sashwidth', 'showhandle', 'activeborderwidth', 'postcommand', 'tearoff', 'tearoffcommand', 'title', 'direction', 'menu', 'padding', 'style', 'mode', 'maximum', 'value', 'phase', 'columns', 'displaycolumns', 'selectmode')
 
 
-	_w_params:dict = {_k : data[_k] for _k in data if _k in _legal}
+	_w_params:dict = {_k : _win_check_params(data[_k]) for _k in data if _k in _legal}
 	_debug(f"WIDGET PARAMS {_w_params}")
 	_w_master = root if 'master' not in data else globals()[data['master']]
 
@@ -214,4 +234,4 @@ def _win_main(events:dict) -> None:
 		except TclError:
 			sys.exit()
 
-		[globals()[_e](**events[_e]) for _e in events]
+		[globals()[_e](_win_check_params(*events[_e])) for _e in events]
